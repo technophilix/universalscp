@@ -1,23 +1,33 @@
-import pysftp
-import json
-with open("credinfo.json", 'r') as infile:
-          config = json.load(infile)
+from flask import Flask
+from flask import render_template, send_from_directory
+from pyfladesk import init_gui
 
-# print(config["user"][0]["ip"])          
+import os
+app = Flask(__name__)
+# add app and parameters
+# Create a WebUI instance
 
 
-Hostname = config["user"][0]["ip"]
-Username = config["user"][0]["username"]
-Password = config["user"][0]["password"]
-with pysftp.Connection(host=Hostname, username=Username, password=Password) as sftp:
-    print("Connection successfully established ... ")
-# Switch to a remote directory
-    sftp.cwd('/')
-    sftp.cwd('/www')
+@app.route('/')
+def logs():
+    filenames = os.listdir(os.getcwd())
+    return render_template('dirtree.html', files=filenames)
 
-# Obtain structure of the remote directory '/opt'
-    directory_structure = sftp.listdir_attr()
 
-# Print data
-for attr in directory_structure:
-    print(attr.filename, attr)
+@app.route('/logs/<path:filename>')
+def log(filename):
+    return send_from_directory(
+        os.getcwd(),
+        filename,
+        as_attachment=True
+    )
+
+
+# @app.route("/home", methods=['GET'])
+# def home():
+#     return render_template('some_page.html')
+
+
+if __name__ == "__main__":
+    # init_gui(app)
+    app.run(debug=True)
